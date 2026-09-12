@@ -25,17 +25,41 @@ class Api {
   }
 
   // ---------- 公开接口 ----------
-  /// 连接门禁: 探测服务器可达性（Splash用，失败绝不让进主界面）
-  static Future<bool> checkServer() async {
-    try {
-      final res = await _client
-          .get(Uri.parse(_url('/api/yzbjfpv-app-version')))
-          .timeout(const Duration(seconds: 10));
-      return res.statusCode == 200;
-    } catch (_) {
-      return false;
+  /// 连接门禁: 双接口探测+3轮重试（移动网络慢启动/单接口偶发故障防误杀）
+  /// 返回 null=连接成功；非null=失败诊断（展示给用户定位网络问题）
+  static Future<String?> probeServer() async {
+    const paths = ['/api/yzbjfpv-meta', '/api/yzbjfpv-app-version'];
+    Object? lastErr;
+    for (var round = 0; round < 3; round++) {
+      for (final p in paths) {
+        try {
+          final res = await _client
+              .get(Uri.parse(_url(p)))
+              .timeout(const Duration(seconds: 12));
+          if (res.statusCode == 200) return null;
+          lastErr = 'HTTP ${res.statusCode}';
+        } catch (e) {
+          lastErr = e;
+        }
+      }
+      if (round < 2) await Future.delayed(const Duration(milliseconds: 900));
     }
+    return _diagText(lastErr);
   }
+
+  /// 异常→人话诊断（用户可据此判断是手机网络/运营商DNS还是服务端问题）
+  static String _diagText(Object? e) {
+    final s = e == null ? '' : e.toString();
+    if (s.contains('Failed host lookup')) return 'DNS解析失败(域名无法解析)';
+    if (s.contains('SocketException')) return '网络连接被拒或中断';
+    if (s.contains('HandshakeException') || s.contains('CERTIFICATE')) return 'TLS证书校验失败';
+    if (s.contains('TimeoutException')) return '连接超时(服务器无响应)';
+    if (s.startsWith('HTTP ')) return '服务器返回异常($s)';
+    return '未知网络错误';
+  }
+
+  /// 兼容旧调用: 布尔形式
+  static Future<bool> checkServer() async => (await probeServer()) == null;
 
   /// 远程更新: 版本检查（启动时调用）
   static Future<AppUpdateInfo?> checkUpdate() async {

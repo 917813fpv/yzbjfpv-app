@@ -142,6 +142,7 @@ class _SplashScreenState extends State<SplashScreen>
   final GlassSpec _glass = GlassSpec.forPlatform();
   bool _connecting = false;
   bool _failed = false;
+  String _diag = '';
 
   @override
   void initState() {
@@ -166,13 +167,15 @@ class _SplashScreenState extends State<SplashScreen>
     setState(() {
       _connecting = true;
       _failed = false;
+      _diag = '';
     });
-    final ok = await Api.checkServer();
+    final diag = await Api.probeServer();
     if (!mounted) return;
-    if (!ok) {
+    if (diag != null) {
       setState(() {
         _connecting = false;
         _failed = true;
+        _diag = diag;
       });
       return;
     }
@@ -323,6 +326,24 @@ class _SplashScreenState extends State<SplashScreen>
                     const Text('请检查网络后重试\nair.yzbjfpv.top',
                         textAlign: TextAlign.center,
                         style: TextStyle(fontSize: 12, color: AppTheme.textMuted, height: 1.6)),
+                    if (_diag.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF6F8FA),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text('诊断：$_diag',
+                            style: const TextStyle(fontSize: 11, color: AppTheme.textMuted)),
+                      ),
+                    ],
+                    if (_diag.contains('DNS') || _diag.contains('网络'))
+                      const SizedBox(height: 5),
+                    if (_diag.contains('DNS') || _diag.contains('网络'))
+                      const Text('提示：若浏览器可正常访问，请检查手机管家是否\n限制了本应用的联网权限（应用宝风险安装可能被拦截）',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 10.5, color: AppTheme.textMuted, height: 1.5)),
                     const SizedBox(height: 16),
                     SizedBox(
                       width: double.infinity,

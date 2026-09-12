@@ -574,7 +574,7 @@ class _ProfilePageState extends State<ProfilePage>
         title: const Text('YZBJFPV',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
         content: const Text(
-          'YZBJFPV 飞行平台客户端 V0.0.1.2Beta\n'
+          'YZBJFPV 飞行平台客户端 V0.0.1.5Beta\n'
           '多端支持：Android / Windows / iOS\n'
           '服务器：YZCloud',
           style: TextStyle(fontSize: 13, height: 1.8),

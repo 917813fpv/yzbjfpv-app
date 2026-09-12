@@ -7,7 +7,7 @@ class AppConfig {
   static const String prodUrl = 'https://air.yzbjfpv.top';
 
   /// APP当前版本（与服务端 /api/yzbjfpv-app-version 对比）
-  static const String appVersion = 'V0.0.1.2Beta';
+  static const String appVersion = 'V0.0.1.6Beta';
 
   // 刷新间隔
   static const int newsRefreshMs = 3000;

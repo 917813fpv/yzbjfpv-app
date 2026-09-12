@@ -29,6 +29,19 @@ class _WebViewShellState extends State<WebViewShell> {
 
   bool get _isDesktop => Platform.isWindows;
 
+  /// App壳UA标识：web端凭 navigator.userAgent 含 YZBJFPV-App 识别App环境
+  /// （浏览器永不携带 → 彻底区分App/Web，皮肤中心等App专属功能据此判断）
+  static const String _uaMarker = 'YZBJFPV-App';
+
+  /// Windows: 文档创建前注入，保留原生UA并追加标记
+  static const String _winUaScript = '''
+(function(){try{
+var d=Object.getOwnPropertyDescriptor(Object.getPrototypeOf(navigator),'userAgent');
+var b=(d&&d.get)?d.get.call(navigator):String(navigator.userAgent);
+Object.defineProperty(navigator,'userAgent',{get:function(){return b+' YZBJFPV-App';}});
+}catch(e){}})();
+''';
+
   /// 热更新时的加载地址：一次性时间戳参数，仅绕过 HTML 缓存
   String get _loadUrl => WebViewShell.forceBust
       ? '${AppConfig.prodUrl}?_bust=${DateTime.now().millisecondsSinceEpoch}'
@@ -59,6 +72,9 @@ class _WebViewShellState extends State<WebViewShell> {
     }
     _mobileCtrl = controller
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setUserAgent(Platform.isIOS
+          ? 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1 $_uaMarker'
+          : 'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36 $_uaMarker')
       ..setBackgroundColor(const Color(0xFFFFFFFF))
       ..setNavigationDelegate(NavigationDelegate(
         onPageFinished: (_) {},
@@ -69,6 +85,7 @@ class _WebViewShellState extends State<WebViewShell> {
   Future<void> _initWindows() async {
     try {
       await _winCtrl.initialize();
+      await _winCtrl.addScriptToExecuteOnDocumentCreated(_winUaScript);
       await _winCtrl.setBackgroundColor(AppTheme.bgPrimary);
       await _winCtrl.loadUrl(_loadUrl);
       if (!mounted) return;

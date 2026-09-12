@@ -1,6 +1,8 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+﻿<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Release包必需：无此权限所有真机网络请求直接失败（debug包Flutter自动加，易漏） -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
-        android:label="yzbjfpv"
+        android:label="YZBJFPV"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
