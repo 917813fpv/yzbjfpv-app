@@ -31,16 +31,14 @@ jobs:
           # flutter skips ipa export when --no-codesign, so pack the archive manually
           mkdir -p build/ios/Payload
           cp -R "build/ios/archive/Runner.xcarchive/Products/Applications/Runner.app" build/ios/Payload/
-          cd build/ios
-          zip -r -y ../YZBJFPV-iOS-unsigned.ipa Payload
-          cd ..
-          ls -la YZBJFPV-iOS-unsigned.ipa
+          (cd build/ios && zip -r -y "$GITHUB_WORKSPACE/YZBJFPV-iOS-unsigned.ipa" Payload)
+          ls -la "$GITHUB_WORKSPACE/YZBJFPV-iOS-unsigned.ipa"
 
       - name: Create Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG="v$(date +%Y%m%d-%H%M)"
-          gh release create "$TAG" YZBJFPV-iOS-unsigned.ipa \
+          gh release create "$TAG" "$GITHUB_WORKSPACE/YZBJFPV-iOS-unsigned.ipa" \
             --title "YZBJFPV iOS unsigned IPA $TAG" \
-            --notes "Unsigned IPA, sign locally with i4Tools (爱思助手) then sideload."
+            --notes "Unsigned IPA, sign locally with i4Tools then sideload."
