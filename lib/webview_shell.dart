@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'core/config.dart';
 import 'theme/app_theme.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 import 'package:webview_windows/webview_windows.dart';
 
 /// 任务B：网页壳子（用户拍板的多端方案）
@@ -45,7 +46,18 @@ class _WebViewShellState extends State<WebViewShell> {
   }
 
   void _initMobile() {
-    _mobileCtrl = WebViewController()
+    WebViewController controller;
+    if (Platform.isIOS) {
+      // iOS: 开启内嵌视频播放(否则点击播放强制全屏, web的playsinline被WebView层拦截)
+      final params = WebKitWebViewControllerCreationParams(
+        allowsInlineMediaPlayback: true,
+        mediaTypesRequiringUserAction: const <PlaybackMediaTypes>{},
+      );
+      controller = WebViewController.fromPlatformCreationParams(params);
+    } else {
+      controller = WebViewController();
+    }
+    _mobileCtrl = controller
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(const Color(0xFFFFFFFF))
       ..setNavigationDelegate(NavigationDelegate(
