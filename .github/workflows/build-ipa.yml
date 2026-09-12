@@ -1,0 +1,46 @@
+name: Build iOS IPA
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-ipa:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.3'
+          channel: stable
+          cache: true
+
+      - name: Pub get
+        run: flutter pub get
+
+      - name: Build unsigned IPA
+        run: flutter build ipa --release --no-codesign
+
+      - name: Locate IPA
+        run: |
+          ls -la build/ios/ipa/ || true
+          IPA=$(find build/ios -name "*.ipa" -type f | head -1)
+          echo "IPA_PATH=$IPA" >> $GITHUB_ENV
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: yzbjfpv-ios-unsigned
+          path: build/ios/ipa/*.ipa
+          if-no-files-found: error
+
+      - name: Create Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="v$(date +%Y%m%d-%H%M)"
+          gh release create "$TAG" build/ios/ipa/*.ipa \
+            --title "YZBJFPV iOS unsigned IPA $TAG" \
+            --notes "Unsigned IPA, sign locally with i4Tools (爱思助手) then sideload."

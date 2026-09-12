@@ -1,0 +1,23 @@
+# Flutter/Dart
+build/
+.dart_tool/
+.packages
+.flutter-plugins
+.flutter-plugins-dependencies
+pubspec.lock
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# macOS
+.DS_Store
+
+# Pods (CI will regenerate)
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/.last_build_id
+
+# Local env
+*.env
