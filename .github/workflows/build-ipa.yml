@@ -33,13 +33,6 @@ jobs:
           cd ..
           ls -la YZBJFPV-iOS-unsigned.ipa
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: yzbjfpv-ios-unsigned
-          path: YZBJFPV-iOS-unsigned.ipa
-          if-no-files-found: error
-
       - name: Create Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
