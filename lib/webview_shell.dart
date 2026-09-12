@@ -132,7 +132,18 @@ Object.defineProperty(navigator,'userAgent',{get:function(){return b+' YZBJFPV-A
         ),
       );
     }
-    return WebViewWidget(controller: ctrl);
+    Widget view = WebViewWidget(controller: ctrl);
+    // Android安全区实时适配：状态栏(顶部)+手势条/导航栏(底部)的inset来自系统实时值
+    // （MediaQuery随旋转/键盘/系统栏变化自动重建，零硬编码；web端env()在Android WebView恒为0不可靠）
+    // iOS不用壳层inset——web端viewport-fit=cover+env()已自适配，壳层再加会双重留白
+    if (Platform.isAndroid) {
+      final pad = MediaQuery.of(context).padding;
+      view = Padding(
+        padding: EdgeInsets.only(top: pad.top, bottom: pad.bottom),
+        child: view,
+      );
+    }
+    return view;
   }
 
   Widget _buildDesktop() {

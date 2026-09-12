@@ -14,6 +14,16 @@ void main() async {
   await Storage.init(); // 恢复本地账号数据
   // 移动端锁定竖屏（Windows 桌面不受影响）
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  // Android: 沉浸式edge-to-edge，WebView全屏绘制，安全区inset交给WebViewShell实时读取
+  if (Platform.isAndroid) {
+    await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.dark,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarIconBrightness: Brightness.dark,
+    ));
+  }
   runApp(const YzbjfpvApp());
 }
 
