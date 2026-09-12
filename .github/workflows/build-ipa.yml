@@ -23,17 +23,21 @@ jobs:
       - name: Build unsigned IPA
         run: flutter build ipa --release --no-codesign
 
-      - name: Locate IPA
+      - name: Package IPA from archive
         run: |
-          ls -la build/ios/ipa/ || true
-          IPA=$(find build/ios -name "*.ipa" -type f | head -1)
-          echo "IPA_PATH=$IPA" >> $GITHUB_ENV
+          # flutter skips ipa export when --no-codesign, so pack the archive manually
+          mkdir -p build/ios/Payload
+          cp -R "build/ios/archive/Runner.xcarchive/Products/Applications/Runner.app" build/ios/Payload/
+          cd build/ios
+          zip -r -y ../YZBJFPV-iOS-unsigned.ipa Payload
+          cd ..
+          ls -la YZBJFPV-iOS-unsigned.ipa
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: yzbjfpv-ios-unsigned
-          path: build/ios/ipa/*.ipa
+          path: YZBJFPV-iOS-unsigned.ipa
           if-no-files-found: error
 
       - name: Create Release
@@ -41,6 +45,6 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG="v$(date +%Y%m%d-%H%M)"
-          gh release create "$TAG" build/ios/ipa/*.ipa \
+          gh release create "$TAG" YZBJFPV-iOS-unsigned.ipa \
             --title "YZBJFPV iOS unsigned IPA $TAG" \
             --notes "Unsigned IPA, sign locally with i4Tools (爱思助手) then sideload."
